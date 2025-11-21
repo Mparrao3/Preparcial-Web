@@ -106,3 +106,18 @@ Campos principales:
 3.  **Crear un plan de viaje:**
     - Hacer `POST /travel-plans` con un `countryCode` (ej: `JPN`).
     - Verificar que el plan se crea correctamente y que la respuesta incluye los datos del país asociado.
+
+## Parte C
+
+### Extension de la API
+En este parcial se extendio la funcionalidad de la API agregando capacidades de administracion y monitoreo. Se implemento un nuevo endpoint para eliminar paises de la base de datos local, asegurando la integridad referencial al impedir el borrado si existen planes de viaje asociados. Ademas, se incorporo un sistema de seguridad basico mediante un token en los headers y un sistema de registro de actividad para las peticiones HTTP.
+
+### Funcionamiento y Validacion
+
+#### Endpoint Protegido y Guard
+El endpoint DELETE /countries/:code permite eliminar un pais cacheado. Esta ruta esta protegida por el AuthGuard, el cual intercepta la peticion y verifica que el header Authorization contenga el valor parcialweb. Si el token es correcto y el pais no tiene planes de viaje, se elimina; de lo contrario, se rechaza la peticion.
+Para validar: Enviar una peticion DELETE a /countries/COL con el header Authorization: parcialweb. Si el token es incorrecto, retornara 401 Unauthorized.
+
+#### Middleware de Logging
+El LoggerMiddleware intercepta todas las peticiones a los controladores de Countries y TravelPlans. Registra en la consola el metodo HTTP, la ruta solicitada y el tiempo que tardo el servidor en responder.
+Para validar: Realizar cualquier peticion a la API (ej: GET /countries/ARG) y observar la terminal donde corre el servidor. Debera aparecer un mensaje indicando el metodo, la ruta y el tiempo en milisegundos.
