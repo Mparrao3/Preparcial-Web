@@ -1,123 +1,122 @@
-# Preparcial Web - NestJS Travel Planner
+Preparcial Web - NestJS Travel Planner
 
 La entrega de este preparcial se realiza por medio de un repositorio público que contiene la solución completa.
 
-## Cómo ejecutar el proyecto
+Cómo ejecutar el proyecto
 
-### Instalación
-1.  Clonar el repositorio.
-2.  Instalar las dependencias:
-    ```bash
-    npm install
-    ```
+Instalación
 
-### Configuración de la base de datos elegida
-- **Base de Datos:** SQLite.
-- **Configuración:** No requiere instalación de servidor. El archivo `preparcial.sqlite` se genera automáticamente en la raíz del proyecto al iniciar la aplicación.
-- **ORM:** TypeORM con `synchronize: true`.
+Clonar el repositorio.
 
-### Comando para correr la API
-```bash
+Instalar las dependencias con el comando npm install.
+
+Configuración de la base de datos
+Base de datos: SQLite.
+Configuración: No requiere instalación de servidor. El archivo preparcial.sqlite se genera automáticamente en la raíz del proyecto al iniciar la aplicación.
+ORM: TypeORM con synchronize en true.
+
+Comando para correr la API
 npm run start:dev
-```
-La API estará disponible en `http://localhost:3000`.
+La API estará disponible en http://localhost:3000
 
-## Descripción mínima de la API
+Descripción mínima de la API
 
-La API tiene como propósito gestionar planes de viaje y la información de los países destino. Cuenta con dos módulos principales:
-1.  **CountriesModule:** Se encarga de obtener y almacenar información de países. Actúa como una caché local para la API externa RestCountries.
-2.  **TravelPlansModule:** Gestiona la creación, listado y consulta de los planes de viaje de los usuarios.
+La API gestiona planes de viaje y la información de los países destino. Tiene dos módulos principales:
 
-## Documentación de endpoints
+CountriesModule: Obtiene y almacena información de países. Funciona como caché local para la API externa RestCountries.
 
-### Countries
-*   `GET /countries/:code`
-    *   Obtiene la información de un país por su código ISO Alpha-3 (ej: `COL`, `ARG`).
-    *   *Ejemplo:* `GET http://localhost:3000/countries/COL`
-*   `DELETE /countries/:code`
-    *   Elimina un país de la base de datos local.
-    *   **Restricción:** No se puede eliminar si tiene planes de viaje asociados.
-    *   **Seguridad:** Requiere el header `Authorization: parcialweb`.
-    *   *Ejemplo:* `DELETE http://localhost:3000/countries/COL`
+TravelPlansModule: Gestiona la creación, listado y consulta de planes de viaje de los usuarios.
 
-### TravelPlans
-*   `POST /travel-plans`
-    *   Crea un nuevo plan de viaje.
-    *   *Ejemplo Body:*
-        ```json
-        {
-          "countryCode": "ARG",
-          "title": "Viaje a Buenos Aires",
-          "startDate": "2025-01-10",
-          "endDate": "2025-01-20",
-          "notes": "Visitar el Obelisco"
-        }
-        ```
-*   `GET /travel-plans`
-    *   Lista todos los planes de viaje registrados.
+Documentación de endpoints
 
-## Características Adicionales (Parcial)
+Countries
+GET /countries/:code
+Obtiene información de un país por su código ISO Alpha-3.
+Ejemplo: GET http://localhost:3000/countries/COL
 
-### Logger Middleware
-Se incluye un middleware global para los controladores de `Countries` y `TravelPlans` que registra en consola:
-- Método HTTP.
-- URL solicitada.
-- Tiempo transcurrido en ms.
+DELETE /countries/:code
+Elimina un país de la base de datos local.
+Restricción: No se puede eliminar si tiene planes de viaje asociados.
+Seguridad: Requiere el header Authorization: parcialweb
+Ejemplo: DELETE http://localhost:3000/countries/COL
 
-### Protección de Endpoints
-El endpoint de eliminación (`DELETE`) está protegido por un `AuthGuard` que valida el header `Authorization`.
+TravelPlans
+POST /travel-plans
+Crea un nuevo plan de viaje.
+Ejemplo de body:
+countryCode: ARG
+title: Viaje a Buenos Aires
+startDate: 2025-01-10
+endDate: 2025-01-20
+notes: Visitar el Obelisco
 
-## Explicación del provider externo
+GET /travel-plans
+Lista todos los planes de viaje registrados.
 
-Se consultan los países desde **RestCountries** (v3.1).
-- **Endpoint usado:** `https://restcountries.com/v3.1/alpha/{code}`.
-- **Lógica:** Cuando se solicita un país, el sistema verifica primero si existe en la base de datos local (SQLite). Si no existe, el `RestCountriesProvider` realiza una petición HTTP GET a la API externa, mapea la respuesta a nuestra entidad `Country`, la guarda en la base de datos y la retorna. Esto optimiza el rendimiento y reduce el tráfico externo.
+Características adicionales
 
-## Modelo de datos
+Logger Middleware
+Se incluye un middleware global para los controladores de Countries y TravelPlans que registra en consola:
 
-### Country
-Campos principales:
-- `code`: Código ISO Alpha-3 (PK).
-- `name`: Nombre común del país.
-- `capital`: Capital del país.
-- `region`: Región geográfica.
-- `population`: Población total.
-- `flagUrl`: URL de la bandera (PNG).
+Método HTTP
 
-### TravelPlan
-Campos principales:
-- `id`: Identificador único (UUID).
-- `title`: Título del viaje.
-- `startDate`: Fecha de inicio.
-- `endDate`: Fecha de fin.
-- `notes`: Notas opcionales.
-- `country`: Relación con la entidad `Country`.
+URL solicitada
 
-## Pruebas básicas sugeridas
+Tiempo transcurrido en milisegundos
 
-1.  **Consultar un país no cacheado:**
-    - Hacer `GET /countries/JPN`.
-    - El sistema tardará un poco más mientras consulta la API externa y guarda los datos.
+Protección de endpoints
+El endpoint DELETE está protegido por un AuthGuard que valida el header Authorization.
 
-2.  **Consultar un país cacheado:**
-    - Hacer nuevamente `GET /countries/JPN`.
-    - La respuesta debe ser inmediata, ya que los datos vienen de SQLite.
+Explicación del provider externo
 
-3.  **Crear un plan de viaje:**
-    - Hacer `POST /travel-plans` con un `countryCode` (ej: `JPN`).
-    - Verificar que el plan se crea correctamente y que la respuesta incluye los datos del país asociado.
+La API consulta los países desde RestCountries versión 3.1.
+Endpoint utilizado: https://restcountries.com/v3.1/alpha/{code}
 
-## Parte C
+Funcionamiento:
+Si un país no está en la base de datos local, el sistema consulta la API externa, mapea la información a la entidad Country, la guarda en SQLite y luego la retorna. Esto reduce tráfico externo y mejora el rendimiento.
 
-### Extension de la API
-En este parcial se extendio la funcionalidad de la API agregando capacidades de administracion y monitoreo. Se implemento un nuevo endpoint para eliminar paises de la base de datos local, asegurando la integridad referencial al impedir el borrado si existen planes de viaje asociados. Ademas, se incorporo un sistema de seguridad basico mediante un token en los headers y un sistema de registro de actividad para las peticiones HTTP.
+Modelo de datos
 
-### Funcionamiento y Validacion
+Country
+code: Código ISO Alpha-3
+name: Nombre del país
+capital: Capital
+region: Región
+population: Población total
+flagUrl: URL de la bandera
 
-#### Endpoint Protegido y Guard
-El endpoint DELETE /countries/:code permite eliminar un pais cacheado. Esta ruta esta protegida por el AuthGuard, el cual intercepta la peticion y verifica que el header Authorization contenga el valor parcialweb. Si el token es correcto y el pais no tiene planes de viaje, se elimina; de lo contrario, se rechaza la peticion.
-Para validar: Enviar una peticion DELETE a /countries/COL con el header Authorization: parcialweb. Si el token es incorrecto, retornara 401 Unauthorized.
+TravelPlan
+id: Identificador único UUID
+title: Título del viaje
+startDate: Fecha de inicio
+endDate: Fecha de fin
+notes: Notas opcionales
+country: Relación con la entidad Country
 
-#### Middleware de Logging
-El LoggerMiddleware intercepta todas las peticiones a los controladores de Countries y TravelPlans. Registra en la consola el metodo HTTP, la ruta solicitada y el tiempo que tardo el servidor en responder.
-Para validar: Realizar cualquier peticion a la API (ej: GET /countries/ARG) y observar la terminal donde corre el servidor. Debera aparecer un mensaje indicando el metodo, la ruta y el tiempo en milisegundos.
+Pruebas básicas sugeridas
+
+Consultar un país no cacheado:
+GET /countries/JPN. La API consultará la API externa y luego guardará el país.
+
+Consultar un país cacheado:
+GET /countries/JPN nuevamente. La respuesta será inmediata desde SQLite.
+
+Crear un plan de viaje:
+POST /travel-plans usando un countryCode como JPN. Validar que el país asociado aparece en la respuesta.
+
+Parte C
+
+Extensión de la API
+Se amplió la API agregando capacidades de administración y monitoreo. Se agregó un endpoint para eliminar países asegurando integridad referencial. También se implementó un sistema simple de seguridad basado en un token en headers y un registro de actividad para las peticiones HTTP.
+
+Funcionamiento y validación
+
+Endpoint protegido y guard
+DELETE /countries/:code permite eliminar un país cacheado.
+El AuthGuard verifica que el header Authorization tenga el valor parcialweb.
+Si el token es correcto y no hay planes asociados, se elimina el país.
+Si el token es incorrecto, se retorna 401 Unauthorized.
+
+Middleware de logging
+El LoggerMiddleware registra método HTTP, ruta y tiempo de respuesta.
+Para validarlo, hacer cualquier petición como GET /countries/ARG y verificar en la consola del servidor.

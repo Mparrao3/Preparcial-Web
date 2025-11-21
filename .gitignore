@@ -18,7 +18,6 @@ Thumbs.db
 *.swp
 *.iml
 
-# database
+# Database
 *.sqlite
-*.sqlite-journal
 
