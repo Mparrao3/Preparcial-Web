@@ -1,0 +1,65 @@
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Country } from './entities/country.entity';
+import { ICountryProvider } from './interfaces/country-provider.interface';
+
+@Injectable()
+export class CountriesService {
+  constructor(
+    @InjectRepository(Country)
+    private readonly countryRepository: Repository<Country>,
+    // Inyectamos el provider usando el token 'ICountryProvider'
+    @Inject('ICountryProvider')
+    private readonly countryProvider: ICountryProvider,
+  ) {}
+
+  async findAll() {
+    return await this.countryRepository.find();
+  }
+
+  async findOne(code: string) {
+    const upperCode = code.toUpperCase();
+    
+    // 1. Buscar en Base de Datos (Caché)
+    const cachedCountry = await this.countryRepository.findOneBy({ code: upperCode });
+    
+    if (cachedCountry) {
+      return {
+        data: cachedCountry,
+        origin: 'cache',
+      };
+    }
+
+    // 2. Si no existe, consultar API Externa
+    const apiData = await this.countryProvider.getCountryByCode(upperCode);
+
+    if (!apiData) {
+      throw new NotFoundException(`Country with code ${upperCode} not found in external API`);
+    }
+
+    // 3. Mapear y Guardar en Base de Datos
+    const newCountry = this.countryRepository.create({
+      code: apiData.cca3,
+      name: apiData.name.common,
+      region: apiData.region,
+      subregion: apiData.subregion || 'N/A', // Algunos no tienen subregion
+      capital: apiData.capital ? apiData.capital[0] : 'N/A',
+      population: apiData.population,
+      flagUrl: apiData.flags.png,
+    });
+
+    await this.countryRepository.save(newCountry);
+
+    return {
+      data: newCountry,
+      origin: 'api',
+    };
+  }
+
+  // Método auxiliar para uso interno (TravelPlans) que devuelve solo la entidad
+  async findOneEntity(code: string): Promise<Country> {
+    const result = await this.findOne(code);
+    return result.data;
+  }
+}
