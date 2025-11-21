@@ -34,6 +34,11 @@ La API tiene como propósito gestionar planes de viaje y la información de los 
 *   `GET /countries/:code`
     *   Obtiene la información de un país por su código ISO Alpha-3 (ej: `COL`, `ARG`).
     *   *Ejemplo:* `GET http://localhost:3000/countries/COL`
+*   `DELETE /countries/:code`
+    *   Elimina un país de la base de datos local.
+    *   **Restricción:** No se puede eliminar si tiene planes de viaje asociados.
+    *   **Seguridad:** Requiere el header `Authorization: parcialweb`.
+    *   *Ejemplo:* `DELETE http://localhost:3000/countries/COL`
 
 ### TravelPlans
 *   `POST /travel-plans`
@@ -50,6 +55,17 @@ La API tiene como propósito gestionar planes de viaje y la información de los 
         ```
 *   `GET /travel-plans`
     *   Lista todos los planes de viaje registrados.
+
+## Características Adicionales (Parcial)
+
+### Logger Middleware
+Se incluye un middleware global para los controladores de `Countries` y `TravelPlans` que registra en consola:
+- Método HTTP.
+- URL solicitada.
+- Tiempo transcurrido en ms.
+
+### Protección de Endpoints
+El endpoint de eliminación (`DELETE`) está protegido por un `AuthGuard` que valida el header `Authorization`.
 
 ## Explicación del provider externo
 
