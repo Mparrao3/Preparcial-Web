@@ -10,16 +10,16 @@ import { TravelPlan } from '../travel-plans/entities/travel-plan.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Country, TravelPlan]),
-    HttpModule, // Necesario para el provider
+    HttpModule, 
   ],
   controllers: [CountriesController],
   providers: [
     CountriesService,
     {
-      provide: 'ICountryProvider', // Token de inyección
-      useClass: RestCountriesProvider, // Implementación real
+      provide: 'ICountryProvider', 
+      useClass: RestCountriesProvider, 
     },
   ],
-  exports: [CountriesService], // Exportamos para usar en TravelPlans
+  exports: [CountriesService], 
 })
 export class CountriesModule {}

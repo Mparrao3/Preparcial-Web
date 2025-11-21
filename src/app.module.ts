@@ -11,9 +11,9 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     // Configuración de Base de Datos SQLite
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: 'preparcial.sqlite', // Archivo local de la BD
+      database: 'preparcial.sqlite', 
       entities: [Country, TravelPlan],
-      synchronize: true, // ¡Cuidado! Solo para desarrollo (crea tablas automáticamente)
+      synchronize: true, 
     }),
     CountriesModule,
     TravelPlansModule,

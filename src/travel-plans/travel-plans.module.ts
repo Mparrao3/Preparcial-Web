@@ -8,7 +8,7 @@ import { CountriesModule } from '../countries/countries.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([TravelPlan]),
-    CountriesModule, // Importamos para usar CountriesService
+    CountriesModule, 
   ],
   controllers: [TravelPlansController],
   providers: [TravelPlansService],

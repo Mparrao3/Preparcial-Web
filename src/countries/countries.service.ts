@@ -12,7 +12,7 @@ export class CountriesService {
     private readonly countryRepository: Repository<Country>,
     @InjectRepository(TravelPlan)
     private readonly travelPlanRepository: Repository<TravelPlan>,
-    // Inyectamos el provider usando el token 'ICountryProvider'
+   
     @Inject('ICountryProvider')
     private readonly countryProvider: ICountryProvider,
   ) {}
@@ -46,7 +46,7 @@ export class CountriesService {
   async findOne(code: string) {
     const upperCode = code.toUpperCase();
     
-    // 1. Buscar en Base de Datos (Caché)
+    
     const cachedCountry = await this.countryRepository.findOneBy({ code: upperCode });
     
     if (cachedCountry) {
@@ -56,14 +56,14 @@ export class CountriesService {
       };
     }
 
-    // 2. Si no existe, consultar API Externa
+    
     const apiData = await this.countryProvider.getCountryByCode(upperCode);
 
     if (!apiData) {
       throw new NotFoundException(`Country with code ${upperCode} not found in external API`);
     }
 
-    // 3. Mapear y Guardar en Base de Datos
+    
     const newCountry = this.countryRepository.create({
       code: apiData.cca3,
       name: apiData.name.common,
@@ -82,7 +82,7 @@ export class CountriesService {
     };
   }
 
-  // Método auxiliar para uso interno (TravelPlans) que devuelve solo la entidad
+  
   async findOneEntity(code: string): Promise<Country> {
     const result = await this.findOne(code);
     return result.data;

@@ -7,12 +7,12 @@ async function bootstrap() {
   
   // Habilitar validación global
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // Elimina propiedades no decoradas en los DTOs
-    forbidNonWhitelisted: true, // Lanza error si llegan propiedades extra
-    transform: true, // Transforma los payloads a instancias de DTO
+    whitelist: true, 
+    forbidNonWhitelisted: true, 
+    transform: true, 
   }));
 
-  // Habilitar CORS por si se quiere probar desde un frontend simple
+  
   app.enableCors();
 
   await app.listen(3000);

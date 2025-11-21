@@ -9,7 +9,7 @@ export class RestCountriesProvider implements ICountryProvider {
 
   async getCountryByCode(code: string): Promise<any> {
     try {
-      // Solicitamos solo los campos necesarios para optimizar
+      
       const url = `https://restcountries.com/v3.1/alpha/${code}?fields=name,cca3,region,subregion,capital,population,flags`;
       
       const { data } = await firstValueFrom(this.httpService.get(url));
@@ -17,7 +17,7 @@ export class RestCountriesProvider implements ICountryProvider {
       return data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        return null; // No encontrado en la API externa
+        return null; 
       }
       throw new InternalServerErrorException('Error connecting to RestCountries API');
     }
