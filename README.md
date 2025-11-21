@@ -85,7 +85,7 @@ Se ha implementado `RestCountriesProvider` para aislar la comunicación con la A
 
 ## Pruebas Básicas Sugeridas
 
-Se recomienda usar **Postman** o **Thunder Client** para realizar las siguientes pruebas:
+Se uso **Thunder Client** para realizar las siguientes pruebas:
 
 1.  **Consultar país no cacheado (Origen: API)**
     *   `GET /countries/BRA`
@@ -104,3 +104,4 @@ Se recomienda usar **Postman** o **Thunder Client** para realizar las siguientes
 } | ConvertTo-Json
 
 Invoke-RestMethod -Method Post -Uri "http://localhost:3000/travel-plans" -Body $body -ContentType "application/json"
+1
