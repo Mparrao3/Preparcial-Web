@@ -1,14 +1,17 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Country } from './entities/country.entity';
 import { ICountryProvider } from './interfaces/country-provider.interface';
+import { TravelPlan } from '../travel-plans/entities/travel-plan.entity';
 
 @Injectable()
 export class CountriesService {
   constructor(
     @InjectRepository(Country)
     private readonly countryRepository: Repository<Country>,
+    @InjectRepository(TravelPlan)
+    private readonly travelPlanRepository: Repository<TravelPlan>,
     // Inyectamos el provider usando el token 'ICountryProvider'
     @Inject('ICountryProvider')
     private readonly countryProvider: ICountryProvider,
@@ -16,6 +19,28 @@ export class CountriesService {
 
   async findAll() {
     return await this.countryRepository.find();
+  }
+
+  async delete(code: string) {
+    const upperCode = code.toUpperCase();
+    const country = await this.countryRepository.findOneBy({ code: upperCode });
+
+    if (!country) {
+      throw new NotFoundException(`Country with code ${upperCode} not found`);
+    }
+
+    const hasPlans = await this.travelPlanRepository.count({
+      where: { country: { code: upperCode } },
+    });
+
+    if (hasPlans > 0) {
+      throw new BadRequestException(
+        `Cannot delete country ${upperCode} because it has associated travel plans`,
+      );
+    }
+
+    await this.countryRepository.remove(country);
+    return { message: `Country ${upperCode} deleted successfully` };
   }
 
   async findOne(code: string) {

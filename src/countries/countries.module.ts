@@ -5,10 +5,11 @@ import { CountriesService } from './countries.service';
 import { CountriesController } from './countries.controller';
 import { Country } from './entities/country.entity';
 import { RestCountriesProvider } from './providers/rest-countries.provider';
+import { TravelPlan } from '../travel-plans/entities/travel-plan.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Country]),
+    TypeOrmModule.forFeature([Country, TravelPlan]),
     HttpModule, // Necesario para el provider
   ],
   controllers: [CountriesController],
