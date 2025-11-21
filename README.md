@@ -1,20 +1,20 @@
 # Preparcial Web - NestJS Travel Planner
 
-Este proyecto es una API REST desarrollada en NestJS para gestionar planes de viaje, integrando consumo de APIs externas y almacenamiento en caché local.
+La entrega de este preparcial se realiza por medio de un repositorio público que contiene la solución completa.
 
 ## Cómo ejecutar el proyecto
 
 ### Instalación
-1.  Clonar el repositorio o descargar el código.
+1.  Clonar el repositorio.
 2.  Instalar las dependencias:
     ```bash
     npm install
     ```
 
-### Configuración de Base de Datos
+### Configuración de la base de datos elegida
 - **Base de Datos:** SQLite.
-- **Archivo:** `preparcial.sqlite` (se crea automáticamente en la raíz).
-- **ORM:** TypeORM configurado con `synchronize: true` para creación automática de tablas.
+- **Configuración:** No requiere instalación de servidor. El archivo `preparcial.sqlite` se genera automáticamente en la raíz del proyecto al iniciar la aplicación.
+- **ORM:** TypeORM con `synchronize: true`.
 
 ### Comando para correr la API
 ```bash
@@ -22,86 +22,71 @@ npm run start:dev
 ```
 La API estará disponible en `http://localhost:3000`.
 
-## Descripción de la API
+## Descripción mínima de la API
 
-La API cuenta con dos módulos principales:
-1.  **CountriesModule:** Gestiona la información de países, actuando como caché de la API externa RestCountries.
-2.  **TravelPlansModule:** Gestiona la creación y consulta de planes de viaje asociados a esos países.
+La API tiene como propósito gestionar planes de viaje y la información de los países destino. Cuenta con dos módulos principales:
+1.  **CountriesModule:** Se encarga de obtener y almacenar información de países. Actúa como una caché local para la API externa RestCountries.
+2.  **TravelPlansModule:** Gestiona la creación, listado y consulta de los planes de viaje de los usuarios.
 
-## Documentación de Endpoints
+## Documentación de endpoints
 
-### Módulo Countries
-
-*   `GET /countries`
-    *   Lista todos los países almacenados en la base de datos local.
+### Countries
 *   `GET /countries/:code`
-    *   Busca un país por su código Alpha-3 (ej: `COL`, `ARG`).
-    *   **Comportamiento:** Busca en DB -> Si no existe, consulta API externa -> Guarda en DB -> Retorna.
+    *   Obtiene la información de un país por su código ISO Alpha-3 (ej: `COL`, `ARG`).
+    *   *Ejemplo:* `GET http://localhost:3000/countries/COL`
 
-### Módulo Travel Plans
-
+### TravelPlans
 *   `POST /travel-plans`
     *   Crea un nuevo plan de viaje.
-    *   **Validación:** Verifica fechas y existencia del país (lo importa automáticamente si no existe).
-    *   **Body:**
+    *   *Ejemplo Body:*
         ```json
         {
-            "countryCode": "JPN",
-            "title": "Viaje a Tokio",
-            "startDate": "2024-12-01",
-            "endDate": "2024-12-15",
-            "notes": "Llevar adaptador"
+          "countryCode": "ARG",
+          "title": "Viaje a Buenos Aires",
+          "startDate": "2025-01-10",
+          "endDate": "2025-01-20",
+          "notes": "Visitar el Obelisco"
         }
         ```
 *   `GET /travel-plans`
-    *   Lista todos los planes de viaje ordenados por fecha de creación.
-*   `GET /travel-plans/:id`
-    *   Obtiene el detalle de un plan específico.
+    *   Lista todos los planes de viaje registrados.
 
-## Explicación del Provider Externo
+## Explicación del provider externo
 
-Se ha implementado `RestCountriesProvider` para aislar la comunicación con la API `https://restcountries.com`.
-- **Funcionamiento:** Consulta el endpoint `/alpha/{code}` solicitando solo los campos necesarios (`fields=...`) para optimizar la respuesta.
-- **Desacoplamiento:** Se inyecta en el servicio mediante la interfaz `ICountryProvider`, permitiendo cambiar la fuente de datos sin afectar la lógica de negocio.
+Se consultan los países desde **RestCountries** (v3.1).
+- **Endpoint usado:** `https://restcountries.com/v3.1/alpha/{code}`.
+- **Lógica:** Cuando se solicita un país, el sistema verifica primero si existe en la base de datos local (SQLite). Si no existe, el `RestCountriesProvider` realiza una petición HTTP GET a la API externa, mapea la respuesta a nuestra entidad `Country`, la guarda en la base de datos y la retorna. Esto optimiza el rendimiento y reduce el tráfico externo.
 
-## Modelo de Datos
+## Modelo de datos
 
 ### Country
-- `code`: String (PK, Alpha-3)
-- `name`: String
-- `region`: String
-- `subregion`: String
-- `capital`: String
-- `population`: Number
-- `flagUrl`: String
+Campos principales:
+- `code`: Código ISO Alpha-3 (PK).
+- `name`: Nombre común del país.
+- `capital`: Capital del país.
+- `region`: Región geográfica.
+- `population`: Población total.
+- `flagUrl`: URL de la bandera (PNG).
 
 ### TravelPlan
-- `id`: UUID (PK)
-- `countryCode`: String (FK lógica)
-- `title`: String
-- `startDate`: Date
-- `endDate`: Date
-- `notes`: String (Opcional)
+Campos principales:
+- `id`: Identificador único (UUID).
+- `title`: Título del viaje.
+- `startDate`: Fecha de inicio.
+- `endDate`: Fecha de fin.
+- `notes`: Notas opcionales.
+- `country`: Relación con la entidad `Country`.
 
-## Pruebas Básicas Sugeridas
+## Pruebas básicas sugeridas
 
-Se uso **Thunder Client** para realizar las siguientes pruebas:
+1.  **Consultar un país no cacheado:**
+    - Hacer `GET /countries/JPN`.
+    - El sistema tardará un poco más mientras consulta la API externa y guarda los datos.
 
-1.  **Consultar país no cacheado (Origen: API)**
-    *   `GET /countries/BRA`
-    *   Debe devolver los datos de Brasil con `"origin": "api"`.
+2.  **Consultar un país cacheado:**
+    - Hacer nuevamente `GET /countries/JPN`.
+    - La respuesta debe ser inmediata, ya que los datos vienen de SQLite.
 
-2.  **Consultar país cacheado (Origen: Cache)**
-    *   `GET /countries/BRA` (Segunda vez)
-    *   Debe devolver los mismos datos con `"origin": "cache"`.
-
-3.  **Crear un plan de viaje**
-    *   `POST /travel-plans` con un `countryCode` válido.
-    *   Debe devolver el plan creado con su ID.
-    *   *Nota:* Si se usa un código de país que no está en la BD (ej: `FRA`), el sistema lo importará automáticamente antes de crear el plan.
-    endDate = "2024-06-15"
-    notes = "Llevar bloqueador solar"
-} | ConvertTo-Json
-
-Invoke-RestMethod -Method Post -Uri "http://localhost:3000/travel-plans" -Body $body -ContentType "application/json"
-1
+3.  **Crear un plan de viaje:**
+    - Hacer `POST /travel-plans` con un `countryCode` (ej: `JPN`).
+    - Verificar que el plan se crea correctamente y que la respuesta incluye los datos del país asociado.
